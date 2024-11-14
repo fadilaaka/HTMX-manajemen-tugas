@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script
+			src="https://unpkg.com/htmx.org@2.0.3"
+			integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
+			crossorigin="anonymous"
+		></script>
+		<meta name="htmx-config" content='{"selfRequestsOnly": false}' />
+		<title>Task Management</title>
+	</head>
+	<body class="bg-[#10375C]">
+		<div class="m-12">
+			<h1 class="text-center text-2xl font-bold text-[#F4F6FF] mb-5">Task Management</h1>
+			<form
+				hx-post="http://127.0.0.1:8000/api/tambah/"
+				hx-headers='{"Content-Type": "application/json"}'
+				hx-request='{"noHeaders": true}'
+				hx-ext="submitjson"
+				hx-swap="outerHTML"
+				hx-target="#inside-card"
+				class="flex flex-col lg:flex-row justify-center gap-5 mb-5"
+			>
+				<input
+					type="text"
+					placeholder="Title Task"
+					id="judul"
+					name="judul"
+					class="px-4 py-2 rounded-lg bg-[#F3C623] placeholder:text-gray-700"
+				/>
+				<input
+					type="text"
+					placeholder="Description"
+					id="deskripsi"
+					name="deskripsi"
+					class="px-4 py-2 rounded-lg bg-[#F3C623] placeholder:text-gray-700"
+				/>
+				<input
+					type="date"
+					id="deadline"
+					name="deadline"
+					class="px-4 py-2 rounded-lg bg-[#F3C623] placeholder:text-gray-700"
+				/>
+				<select
+					name="prioritas"
+					id="prioritas"
+					aria-placeholder="prioritas"
+					class="px-4 py-2 rounded-lg bg-[#F3C623] placeholder:text-gray-700"
+				>
+					<option value="rendah">Low</option>
+					<option value="sedang">Medium</option>
+					<option value="tinggi">High</option>
+				</select>
+				<button
+					class="px-4 py-2 rounded-lg bg-[#EB8317] placeholder:text-gray-700 transition-all hover:opacity-75"
+				>
+					Submit
+				</button>
+			</form>
+			<button
+				hx-get="http://127.0.0.1:8000/api/tugas"
+				hx-request='{"noHeaders": true}'
+				hx-target="#card2"
+				hx-swap="outerHTML"
+				class="px-4 py-2 rounded-lg bg-[#EB8317] placeholder:text-gray-700 transition-all hover:opacity-75"
+			>
+				Get
+			</button>
+			<div
+				hx-get="http://127.0.0.1:8000/api/tugas"
+				hx-request='{"noHeaders": true}'
+				hx-trigger="load"
+				hx-target="#card"
+				class="grid grid-cols-2 lg:grid-cols-4 gap-5 my-5"
+				id="card-list"
+			>
+				<div class="bg-[#F4F6FF] p-5 rounded-lg shadow-xl" id="card">
+					<h2 class="text-[#10375C] font-bold text-2xl"></h2>
+					<p class="text-[#EB8317] font-bold my-3"></p>
+					<span class="text-black font-bold"></span>
+				</div>
+				<div class="bg-[#F4F6FF] p-5 rounded-lg shadow-xl">
+					<div id="card2">
+						<h2 class="text-[#10375C] font-bold text-2xl"></h2>
+						<p class="text-[#EB8317] font-bold my-3"></p>
+						<span class="text-black font-bold"></span>
+					</div>
+				</div>
+				<div class="bg-[#F4F6FF] p-5 rounded-lg shadow-xl" id="card3">
+					<div id="inside-card"></div>
+					<h2 class="text-[#10375C] font-bold text-2xl"></h2>
+					<p class="text-[#EB8317] font-bold my-3"></p>
+					<span class="text-black font-bold"></span>
+				</div>
+			</div>
+		</div>
+		<script>
+			const judul = document.querySelector('input[name="judul"]').value;
+			const deskripsi = document.querySelector('input[name="deskripsi"]').value;
+			const deadline = document.querySelector('input[name="deadline"]').value;
+			const prioritas = document.querySelector('select[name="prioritas"]').value;
+
+			console.log("Judul: ", judul);
+			console.log("Deskripsi: ", deskripsi);
+			console.log("Deadline: ", deadline);
+			console.log("Prioritas: ", prioritas);
+
+			htmx.defineExtension("submitjson", {
+				onEvent: function (name, evt) {
+					if (name === "htmx:configRequest") {
+						evt.detail.headers["Content-Type"] = "application/json";
+					}
+				},
+				encodeParameters: function (xhr, parameters, elt) {
+					xhr.overrideMimeType("text/json");
+					const body = {
+						data: parameters,
+						options: { submissionFormat: "pretty" },
+					};
+					return JSON.stringify(body);
+				},
+			});
+
+			// document.addEventListener("DOMContentLoaded", () => {
+			// 	const form = document.querySelector("form");
+
+			// 	form.addEventListener("submit", async (event) => {
+			// 		event.preventDefault(); // Mencegah form dari pengiriman default
+
+			// 		// Mengambil value dari input field
+			// 		const judul = document.querySelector('input[name="judul"]').value;
+			// 		const deskripsi = document.querySelector('input[name="deskripsi"]').value;
+			// 		const deadline = document.querySelector('input[name="deadline"]').value;
+			// 		const prioritas = document.querySelector('select[name="prioritas"]').value;
+
+			// 		// Membuat objek data untuk dikirim
+			// 		const data = {
+			// 			judul,
+			// 			deskripsi,
+			// 			deadline,
+			// 			prioritas,
+			// 		};
+
+			// 		console.log(data);
+
+			// 		try {
+			// 			const response = await fetch("http://127.0.0.1:8000/api/tambah/", {
+			// 				method: "POST",
+			// 				headers: {
+			// 					"Content-Type": "application/json",
+			// 				},
+			// 				body: JSON.stringify(data),
+			// 			});
+
+			// 			const result = await response.json();
+
+			// 			if (response.ok) {
+			// 				console.log("Data berhasil ditambahkan:", result);
+			// 				// Lakukan sesuatu dengan hasil, misalnya menampilkan di UI
+			// 				document.getElementById("card3").innerHTML = `
+			// 		<h2 class="text-[#10375C] font-bold text-2xl">${result.data.judul}</h2>
+			// 		<p class="text-[#EB8317] font-bold my-3">${result.data.deskripsi}</p>
+			// 		<span class="text-black font-bold">Deadline: ${result.data.deadline}</span>
+			// 	`;
+			// 			} else {
+			// 				console.error("Error:", result.message);
+			// 			}
+			// 		} catch (error) {
+			// 			console.error("Error while sending request:", error);
+			// 		}
+			// 	});
+			// });
+		</script>
+	</body>
+</html>
